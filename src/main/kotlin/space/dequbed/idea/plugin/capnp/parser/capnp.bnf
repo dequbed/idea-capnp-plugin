@@ -1,0 +1,83 @@
+{
+  generate=[names="long" psi="yes" tokens="no"]
+  parserClass="space.dequbed.idea.plugin.capnp.parser.CapnpParser"
+  parserUtilClass="space.dequbed.idea.plugin.capnp.parser.CapnpParserUtil"
+  parserImports=[
+    "static space.dequbed.idea.plugin.capnp.psi.token.CapnpTokens.*"
+  ]
+  psiClassPrefix="Capnp"
+  psiImplClassSuffix="Impl"
+  psiPackage="space.dequbed.idea.plugin.capnp.psi"
+  psiImplPackage="space.dequbed.idea.plugin.capnp.psi.impl"
+
+  elementTypeHolderClass="space.dequbed.idea.plugin.capnp.psi.CapnpTypes"
+  elementTypeClass="space.dequbed.idea.plugin.capnp.psi.CapnpElementType"
+}
+
+File ::= FileElement*
+
+FileElement ::= FileId | Using | AnnotationApplication | TopLevelDefinition | COMMENT {
+    recoverWhile = FileElementRecovery
+}
+FileElementRecovery ::= !(using | struct | enum | interface | annotation | ';' | '#')
+
+private Id ::= '@' INTEGER_LITERAL
+
+private Using ::= using (TYPE_LITERAL '=')? TypeUse ';'
+private Import ::= import STRING_LITERAL
+
+FileId ::= Id ';'
+
+private ValueLiteral ::= STRING_LITERAL | INTEGER_LITERAL | FLOAT_LITERAL
+private ValueList ::= (ValueLiteral | NamedValueList)
+private NamedValueList ::= NamedValue (',' NamedValue)*
+private NamedValue ::= IDENTIFIER_LITERAL '=' ValueLiteral
+
+AnnotationApplication ::= '$' IDENTIFIER_LITERAL AnnotationParams? ';'
+private AnnotationParams ::= '(' ValueList ')'
+
+StructDefinition ::= struct TYPE_LITERAL Generics? Id? StructBody
+Generics ::= '(' TYPE_LITERAL ( ',' TYPE_LITERAL )* ')'
+
+private Field ::= IDENTIFIER_LITERAL Id FieldType ('=' ValueLiteral)? ';'
+private FieldType ::= ':' ( UnionDefinition | GroupDefinition | TypeRef )
+private TypeRef ::= TypeUse | GenericType
+private TypeUse ::= TypeImport | TypePath
+private TypeImport ::= {Import} ('.' {TypePath})?
+private TypePath ::= TYPE_LITERAL ('.' TYPE_LITERAL)*
+private GenericType ::= TYPE_LITERAL '(' GenericType ')'
+
+private StructBody ::= '{' StructElement* '}'
+private StructElement ::= Using | Field | UnionDefinition
+
+UnionDefinition ::= union UnionBody
+private UnionBody ::= '{' UnionElement* '}'
+private UnionElement ::= Field | UnionDefinition
+
+GroupDefinition ::= group GroupBody
+private GroupBody ::= '{' GroupElement* '}'
+private GroupElement ::= Field | UnionDefinition
+
+EnumDefinition ::= enum TYPE_LITERAL EnumBody
+private EnumBody ::= '{' EnumElement* '}'
+private EnumElement ::= IDENTIFIER_LITERAL Id ';'
+
+InterfaceDefinition ::= interface IDENTIFIER_LITERAL Generics? Id? Extends? InterfaceBody
+private Extends ::= (extends '(' TYPE_LITERAL (',' TYPE_LITERAL)* ')')
+private InterfaceBody ::= '{' InterfaceElement* '}'
+private InterfaceElement ::= ( FunDefinition | StructDefinition ) ';'
+
+private FunDefinition ::= IDENTIFIER_LITERAL Id FunGenerics? FunPrototype
+private FunGenerics ::= '[' TYPE_LITERAL (',' TYPE_LITERAL) ']'
+private FunPrototype ::= Params ('->' Params)?
+private Params ::= '(' NamedParam (',' NamedParam)* ')' | TYPE_LITERAL
+private NamedParam ::= IDENTIFIER_LITERAL ':' TypeRef
+
+AnnotationDefinition ::= annotation IDENTIFIER_LITERAL AnnotationTargets TypeRef AnnotationApplication?
+private AnnotationTargets ::= '(' AnnotationTarget (',' AnnotationTarget)* ')'
+private AnnotationTarget ::= '*' | "file" | "struct" | "field" | "union" | "group" | "enum" | "enumerant"
+                           | "interface" | "method" | "parameter" | "annotation" | "const"
+
+ConstDefinition ::= const IDENTIFIER_LITERAL TYPE_LITERAL '=' ValueList ';'
+
+TopLevelDefinition ::= StructDefinition | EnumDefinition | InterfaceDefinition | AnnotationDefinition | ConstDefinition

@@ -1,0 +1,40 @@
+<idea-plugin>
+    <id>space.dequbed.idea.plugin.capnp</id>
+    <name>Cap'n Proto Language Support</name>
+    <version>0.1.0</version>
+    <vendor email="me@dequbed.space" url="https://dequbed.space/">dequbed</vendor>
+
+    <description><![CDATA[
+        Plugin implementing support for Cap'n Proto schema files aimed pimarily at CLion
+    ]]></description>
+
+    <change-notes><![CDATA[
+        0.1.0 — Released on an unsuspecting world
+    ]]>
+    </change-notes>
+
+    <!-- please see https://plugins.jetbrains.com/docs/intellij/build-number-ranges.html for description -->
+    <idea-version since-build="173.0"/>
+
+    <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.lang</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType name="capnp"
+                  implementationClass="space.dequbed.idea.plugin.capnp.CapnpFileType"
+                  fieldName="INSTANCE"
+                  language="capnp"
+                  extensions="capnp"/>
+        <lang.parserDefinition language="capnp"
+                               implementationClass="space.dequbed.idea.plugin.capnp.CapnpParserDef"/>
+        <lang.syntaxHighlighter language="capnp"
+                                implementationClass="space.dequbed.idea.plugin.capnp.hilight.CapnpHighlighter"/>
+    </extensions>
+
+    <actions>
+        <!-- Add your actions here -->
+    </actions>
+
+</idea-plugin>
